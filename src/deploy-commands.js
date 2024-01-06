@@ -1,8 +1,10 @@
 import { REST, Routes } from 'discord.js'
-import { readdirSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import config from './config.json' assert { type: 'json' }
+
+const configBuffer = readFileSync(new URL('./config.json', import.meta.url))
+const config = JSON.parse(configBuffer.toString())
 
 const { clientId, guildId, token } = config
 const __dirname = dirname(fileURLToPath(import.meta.url))

@@ -18,7 +18,8 @@ module.exports = {
   ],
   parserOptions: {
     ecmaVersion: 'latest',
-    sourceType: 'module'
+    sourceType: 'module',
+    allowImportExportEverywhere: true
   },
   rules: {
     'space-before-function-paren': 'off'
