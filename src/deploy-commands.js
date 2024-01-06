@@ -2,13 +2,13 @@ import { REST, Routes } from 'discord.js'
 import { readdirSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import dotenv from 'dotenv'
 
+import dotenv from 'dotenv'
 dotenv.config()
 
 const token = process.env.DISCORD_TOKEN
 const clientId = process.env.DISCORD_CLIENT_ID
-const serverId = process.env.DISCORD_SERVER_ID
+
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export async function deployCommands() {
@@ -29,18 +29,17 @@ export async function deployCommands() {
     }
   }
 
-  const rest = new REST().setToken(token)
+  const rest = new REST({ version: '10' }).setToken(token)
 
   try {
+    console.log('Started refreshing application (/) commands.')
+
+    const data = await rest.put(Routes.applicationCommands(clientId), {
+      body: commands
+    })
+
     console.log(
-      `Started refreshing ${commands.length} application (/) commands.`
-    )
-    const data = await rest.put(
-      Routes.applicationGuildCommands(clientId, serverId),
-      { body: commands }
-    )
-    console.log(
-      `Successfully reloaded ${data.length} application (/) commands.`
+      `Successfully reloaded ${data.length} application (/) commands globally.`
     )
   } catch (error) {
     console.error(error)
