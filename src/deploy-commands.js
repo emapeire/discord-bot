@@ -9,29 +9,23 @@ dotenv.config()
 const token = process.env.DISCORD_TOKEN
 const clientId = process.env.DISCORD_CLIENT_ID
 const serverId = process.env.DISCORD_SERVER_ID
-
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export async function deployCommands() {
   const commands = []
-  const foldersPath = join(__dirname, 'commands')
-  const commandFolders = readdirSync(foldersPath)
+  const commandFiles = readdirSync(join(__dirname, 'commands/utility')).filter(
+    (file) => file.endsWith('.js')
+  )
 
-  for (const folder of commandFolders) {
-    const commandsPath = join(foldersPath, folder)
-    const commandFiles = readdirSync(commandsPath).filter((file) =>
-      file.endsWith('.js')
-    )
-    for (const file of commandFiles) {
-      const filePath = join(commandsPath, file)
-      const command = await import(`file://${filePath}`)
-      if ('data' in command && 'execute' in command) {
-        commands.push(command.data.toJSON())
-      } else {
-        console.log(
-          `[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`
-        )
-      }
+  for (const file of commandFiles) {
+    const filePath = join(__dirname, 'commands/utility', file)
+    const commandModule = await import(`file://${filePath}`)
+    if (commandModule.data) {
+      commands.push(commandModule.data.toJSON())
+    } else {
+      console.log(
+        `[WARNING] The command at ${filePath} is missing the 'data' property.`
+      )
     }
   }
 
@@ -41,12 +35,10 @@ export async function deployCommands() {
     console.log(
       `Started refreshing ${commands.length} application (/) commands.`
     )
-
     const data = await rest.put(
       Routes.applicationGuildCommands(clientId, serverId),
       { body: commands }
     )
-
     console.log(
       `Successfully reloaded ${data.length} application (/) commands.`
     )
