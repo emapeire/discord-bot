@@ -2,9 +2,11 @@ import { readdirSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Client, Collection, Events, GatewayIntentBits } from 'discord.js'
-import dotenv from 'dotenv'
 
+import dotenv from 'dotenv'
 dotenv.config()
+
+const token = process.env.DISCORD_TOKEN
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -64,4 +66,4 @@ client.on(Events.InteractionCreate, async (interaction) => {
   }
 })
 
-client.login(process.env.DISCORD_TOKEN)
+client.login(token)

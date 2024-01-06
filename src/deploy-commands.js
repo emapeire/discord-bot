@@ -1,26 +1,26 @@
 import { REST, Routes } from 'discord.js'
-import { readdirSync, readFileSync } from 'node:fs'
-import { join, dirname } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import fs from 'node:fs'
+import path from 'node:path'
 
-const configBuffer = readFileSync(new URL('./config.json', import.meta.url))
-const config = JSON.parse(configBuffer.toString())
+import dotenv from 'dotenv'
+dotenv.config()
 
-const { clientId, guildId, token } = config
-const __dirname = dirname(fileURLToPath(import.meta.url))
+const token = process.env.DISCORD_TOKEN
+const clientId = process.env.DISCORD_CLIENT_ID
+const serverId = process.env.DISCORD_SERVER_ID
 
 const commands = []
-const foldersPath = join(__dirname, 'commands')
-const commandFolders = readdirSync(foldersPath)
+const foldersPath = path.join(__dirname, 'commands')
+const commandFolders = fs.readdirSync(foldersPath)
 
 for (const folder of commandFolders) {
-  const commandsPath = join(foldersPath, folder)
-  const commandFiles = readdirSync(commandsPath).filter((file) =>
-    file.endsWith('.js')
-  )
+  const commandsPath = path.join(foldersPath, folder)
+  const commandFiles = fs
+    .readdirSync(commandsPath)
+    .filter((file) => file.endsWith('.js'))
   for (const file of commandFiles) {
-    const filePath = join(commandsPath, file)
-    const command = await import(`file://${filePath}`)
+    const filePath = path.join(commandsPath, file)
+    const command = require(filePath)
     if ('data' in command && 'execute' in command) {
       commands.push(command.data.toJSON())
     } else {
@@ -40,7 +40,7 @@ const rest = new REST().setToken(token)
     )
 
     const data = await rest.put(
-      Routes.applicationGuildCommands(clientId, guildId),
+      Routes.applicationGuildCommands(clientId, serverId),
       { body: commands }
     )
 
