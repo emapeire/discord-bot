@@ -1,7 +1,9 @@
 import { startBot } from './start-bot.js'
 import { deployCommands } from './deploy-commands.js'
 
-;(async () => {
+async function initializeBot() {
   await startBot()
-  deployCommands()
-})()
+  await deployCommands()
+}
+
+initializeBot()
