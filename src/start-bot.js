@@ -1,7 +1,7 @@
 import { readdirSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { Client, Collection, Events, GatewayIntentBits } from 'discord.js'
+import { Client, Collection, GatewayIntentBits } from 'discord.js'
 
 import dotenv from 'dotenv'
 dotenv.config()
@@ -38,32 +38,23 @@ export async function startBot() {
     }
   }
 
-  client.once(Events.ClientReady, () => {
-    console.log(`Ready! Logged in as ${client.user.tag}`)
-  })
+  const eventFiles = readdirSync(join(__dirname, 'events')).filter((file) =>
+    file.endsWith('.js')
+  )
 
-  client.on(Events.InteractionCreate, async (interaction) => {
-    if (!interaction.isChatInputCommand()) return
-    const command = client.commands.get(interaction.commandName)
-
-    if (!command) {
-      console.error(`No command matching ${interaction.commandName} was found.`)
-      return
-    }
-
+  for (const file of eventFiles) {
+    const filePath = join(__dirname, 'events', file)
     try {
-      await command.execute(interaction)
+      const event = await import(`file://${filePath}`)
+      if (event.once) {
+        client.once(event.name, (...args) => event.execute(...args))
+      } else {
+        client.on(event.name, (...args) => event.execute(...args))
+      }
     } catch (error) {
-      console.error(
-        `Error executing command ${interaction.commandName}:`,
-        error
-      )
-      await interaction.reply({
-        content: 'There was an error executing this command!',
-        ephemeral: true
-      })
+      console.error(`[ERROR] Error loading event in ${filePath}:`, error)
     }
-  })
+  }
 
   await client.login(token)
 }
